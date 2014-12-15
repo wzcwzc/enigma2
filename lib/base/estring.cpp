@@ -371,6 +371,10 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 {
 	if (!len)
 		return "";
+//////////add chinese
+                if (table == 99)
+                return std::string((char*)data, len);
+/////////add over
 
 	int i=0, t=0;
 
