@@ -310,6 +310,14 @@ class ChannelContextMenu(Screen):
 			self.csel.addBouquet(bouquet, None)
 		self.close()
 
+	def enableParentalProtection(self):
+		config.ParentalControl.servicepinactive.value = True
+		self.close()
+
+	def disableParentalProtection(self):
+		config.ParentalControl.servicepinactive.value = False
+		self.close()
+
 	def addParentalProtection(self, service):
 		from Components.ParentalControl import parentalControl
 		parentalControl.protectService(service.toCompareString())
