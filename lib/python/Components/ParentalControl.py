@@ -80,6 +80,16 @@ class ParentalControl:
 	def setServiceLevel(self, service, type, level):
 		self.serviceLevel[service] = level
 
+	def isServiceLocked(self, service):
+		if not config.ParentalControl.configured.value or not config.ParentalControl.servicepinactive.value:
+			return False
+		if self.configInitialized == False or self.storeServicePin != config.ParentalControl.storeservicepin.value or self.storeServicePinCancel != config.ParentalControl.storeservicepincancel.value:
+			self.getConfigValues()
+		if (config.ParentalControl.type.value == LIST_WHITELIST and not self.whitelist.has_key(service)) or (config.ParentalControl.type.value == LIST_BLACKLIST and self.blacklist.has_key(service)):
+			return True
+		else:
+			return False 
+
 	def isServicePlayable(self, ref, callback):
 		if not config.ParentalControl.configured.value or not config.ParentalControl.servicepinactive.value:
 			return True
