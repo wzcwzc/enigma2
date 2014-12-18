@@ -6,6 +6,8 @@
 #include <lib/base/encoding.h>
 #include <lib/base/estring.h>
 #include "freesatv2.h"
+#include "big5.h"
+#include "gb18030.h"
 
 std::string buildShortName( const std::string &str )
 {
@@ -366,21 +368,98 @@ static inline unsigned int recode(unsigned char d, int cp)
 		return d;
 	}
 }
+int UnicodeToUTF8(long c, char *out)
+{
+	char *s = out;
+	int ret = 0;
+
+	if (c < 0x80){
+		*(s++) = c;
+		ret = 1;
+	}else if (c < 0x800)
+	{
+		*(s++) = 0xc0 | (c >> 6);
+		*(s++) = 0x80 | (c & 0x3f);
+		ret = 2;
+	}
+	else if (c < 0x10000)
+	{
+		*(s++) = 0xe0 | (c >> 12);
+		*(s++) = 0x80 | ((c >> 6) & 0x3f);
+		*(s++) = 0x80 | (c & 0x3f);
+		ret = 3;
+	}
+	else if (c < 0x200000)
+	{
+		*(s++) = 0xf0 | (c >> 18);
+		*(s++) = 0x80 | ((c >> 12) & 0x3f);
+		*(s++) = 0x80 | ((c >> 6) & 0x3f);
+		*(s++) = 0x80 | (c & 0x3f);
+		ret = 4;
+	}
+	return ret;
+}
+
+std::string GB18030ToUTF8(const char *szIn, int len,int *pconvertedLen)
+{
+	char szOut[len * 2];
+	unsigned long code=0;
+	int t=0,i;
+
+	for(i=0;i<(len-1);){
+		int cl=0,k=0;
+
+		cl=gb18030_mbtowc((ucs4_t*)(&code),(const unsigned char *)szIn+i,len-i);
+		if(cl>0)
+			k=UnicodeToUTF8(code,szOut+t);
+		t+=k;
+		if(cl>0)
+			i+=cl;
+		else
+			i++;
+	}
+
+	if(pconvertedLen)*pconvertedLen=i;
+	return std::string(szOut,t);
+}
+
+std::string Big5ToUTF8(const char *szIn, int len,int *pconvertedLen)
+{
+	char szOut[len * 2];
+	unsigned long code=0;
+	int t=0,i=0;
+
+	for(;i<(len-1);i++){
+		if(((unsigned char)szIn[i]>0xA0) && (unsigned char)szIn[i]<=0xF9 &&(
+			(((unsigned char)szIn[i+1]>=0x40)&&((unsigned char)szIn[i+1]<=0x7F)) || (((unsigned char)szIn[i+1]>0xA0)&&((unsigned char)szIn[i+1]<0xFF))
+		    )){
+			big5_mbtowc((ucs4_t*)(&code),(const unsigned char *)szIn+i,2);
+			int k=UnicodeToUTF8(code,szOut+t);
+			t+=k;
+			i++;
+		     }
+		else 
+			szOut[t++]=szIn[i];
+	}
+
+  	if(i<len && szIn[i] && ((unsigned char)szIn[i]<0xA0 || (unsigned char)szIn[i]>0xF9))
+		szOut[t++]=szIn[i++];
+
+	if(pconvertedLen)*pconvertedLen=i;
+	return std::string(szOut,t);
+	
+}
 
 std::string convertDVBUTF8(const unsigned char *data, int len, int table, int tsidonid)
 {
 	if (!len)
 		return "";
-//////////add chinese
-                if (table == 99)
-                return std::string((char*)data, len);
-/////////add over
 
 	int i=0, t=0;
-
+	std::string ustr="",utfid="\x15";
 	if ( tsidonid )
 		encodingHandler.getTransponderDefaultMapping(tsidonid, table);
-
+//	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
 	switch(data[0])
 	{
 		case 1 ... 11:
@@ -418,14 +497,27 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 			break;
 		case 0x13:
 			++i;
-			eDebug("unsup. GB-2312-1980 enc.");
+//			eDebug("unsup. GB-2312-1980 enc.");
+			ustr=GB18030ToUTF8((const char *)(data + i), len - i);
+			return utfid+ustr;
+//			eDebug("unsup. GB-2312-1980 enc.");
 			break;
 		case 0x14:
 			++i;
-			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
+//			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
+			table=BIG5_ENCODING;
+			ustr=Big5ToUTF8((const char *)(data + i), len - i);
+			return utfid+ustr;
+//			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
 			break;
 		case 0x15: // UTF-8 encoding of ISO/IEC 10646-1
 			return std::string((char*)data+1, len-1);
+		case 0x16:
+			table=UTF16BE_ENCODING;
+			break;
+		case 0x17:
+			table=UTF16LE_ENCODING;
+			break;
 		case 0x1F:
 			{
 				// Attempt to decode Freesat Huffman encoded string
@@ -438,6 +530,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 		case 0x0:
 		case 0xC ... 0xF:
 		case 0x16 ... 0x1E:
+		case 0x18 ... 0x1E:
 			eDebug("reserved %d", data[0]);
 			++i;
 			break;
@@ -451,11 +544,48 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 	}
 
 	unsigned char res[2048];
+	res[t++]=UTF8_ENCODING;
 	while (i < len)
 	{
 		unsigned long code=0;
 		if ( useTwoCharMapping && i+1 < len && (code=doVideoTexSuppl(data[i], data[i+1])) )
 			i+=2;
+		else if(table==UTF16BE_ENCODING){
+			if((i+2)>len)break;
+			unsigned long w1=((unsigned long)(data[i])<<8) |((unsigned long)(data[i+1]));
+			if(w1<0xD800UL || w1>0xDFFFUL){
+				code=w1;
+				i++;
+			}
+			else if(w1>0xDBFFUL)
+				break;
+			else if((i+4)<len){
+				unsigned long w2=((unsigned long)(data[i+2])<<8) |((unsigned long)(data[i+3]));
+				if(w2<0xDC00UL || w2>0xDFFFUL)return std::string("");
+				code=0x10000UL + ((w1 & 0x03FFUL)<<10 ) | (w2 & 0x03FFUL);
+				i+=3;
+			}
+			else 
+				break;
+		}
+		else if(table==UTF16LE_ENCODING){
+			if((i+2)>len)break;
+			unsigned long w1=((unsigned long)(data[i+1])<<8) |((unsigned long)(data[i]));
+			if(w1<0xD800UL || w1>0xDFFFUL){
+				code=w1;
+				i++;
+			}
+			else if(w1>0xDBFFUL)
+				break;
+			else if((i+4)<len){
+				unsigned long w2=((unsigned long)(data[i+3])<<8) |((unsigned long)(data[i+2]));
+				if(w2<0xDC00UL || w2>0xDFFFUL)break;
+				code=0x10000UL + ((w1 & 0x03FFUL)<<10 ) | (w2 & 0x03FFUL);
+				i+=3;
+			}
+			else
+				break;
+		}
 		if (!code) {
 			if (table == 65) { // unicode
 				if (i+1 < len) {
