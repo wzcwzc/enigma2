@@ -574,7 +574,7 @@ def runScreenTest():
 	print screensToRun
 
 	enigma.ePythonConfigQuery.setQueryFunc(configfile.getResolvedKey)
-
+	enigma.eDVBService.setQueryFunc(Components.ParentalControl.parentalControl.isServiceLocked)
 	def runNextScreen(session, screensToRun, *result):
 		if result:
 			print "[mytest.py] quitMainloop #3"
