@@ -38,4 +38,6 @@ dist_install_DATA = \
 	sv_SE.png \
 	th_TH.png \
 	tr_TR.png \
-	uk_UA.png
+	uk_UA.png \
+	cn_CN.png \
+	cn_hk.png
