@@ -1080,7 +1080,7 @@ void eDVBServicePlay::gotNewEvent(int error)
 #endif
 	if (!error)
 	{
-		m_nownext_timer->stop();
+//		m_nownext_timer->stop();
 		m_event((iPlayableService*)this, evUpdatedEventInfo);
 	}
 	else
