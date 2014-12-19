@@ -57,8 +57,8 @@ eDVBTextEncodingHandler::eDVBTextEncodingHandler()
 //			if ( (sscanf( line, "0x%x 0x%x ISO8859-%d", &tsid, &onid, &encoding ) == 3 )
 //					||(sscanf( line, "%d %d ISO8859-%d", &tsid, &onid, &encoding ) == 3 ) )
 // 				m_TransponderDefaultMapping[(tsid<<16)|onid]=encoding;
-+			if ( (sscanf( strlower(line,lowerline), "0x%x 0x%x iso8859-%d", &tsid, &onid, &encoding ) == 3 )
-+				||(sscanf( strlower(line,lowerline), "%d %d iso8859-%d", &tsid, &onid, &encoding ) == 3 ) )
+			if ( (sscanf( strlower(line,lowerline), "0x%x 0x%x iso8859-%d", &tsid, &onid, &encoding ) == 3 )
+				||(sscanf( strlower(line,lowerline), "%d %d iso8859-%d", &tsid, &onid, &encoding ) == 3 ) )
 				m_TransponderDefaultMapping[(tsid<<16)|onid]=encoding;
 //			else if ( sscanf( line, "%s ISO8859-%d", countrycode, &encoding ) == 2 )
 			else if ( ((sscanf( strlower(line,lowerline), "0x%x 0x%x gb%d", &tsid, &onid, &encoding ) == 3 )
