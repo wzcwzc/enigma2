@@ -260,11 +260,11 @@ class eDVBChannelQuery;
 class eDVBService: public iStaticServiceInformation
 {
 	DECLARE_REF(eDVBService);
-	#ifndef SWIG
+#ifndef SWIG
 	int *m_cache;
 	void initCache();
 	void copyCache(int *source);
-	#endif
+#endif
 	static ePyObject m_queryFunc;
 public:
 	enum cacheID
