@@ -529,7 +529,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 			break;
 		case 0x0:
 		case 0xC ... 0xF:
-		case 0x16 ... 0x1E:
+//		case 0x16 ... 0x1E:
 		case 0x18 ... 0x1E:
 			eDebug("reserved %d", data[0]);
 			++i;
