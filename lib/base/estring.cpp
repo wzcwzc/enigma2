@@ -460,12 +460,13 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 	if ( tsidonid )
 		encodingHandler.getTransponderDefaultMapping(tsidonid, table);
 	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
-	if (table==0x13 )
-	{
+//	if (table==0x13 )
+//	{
 			ustr=GB18030ToUTF8((const char *)(data + i), len - i);
 			return utfid+ustr;
 			eDebug("[GBK]");	
-	}
+//	}
+#if 0
 	else
 	{
 		switch(data[0])
@@ -544,7 +545,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 				break;
 		}
 	}
-
+#endif
 	bool useTwoCharMapping = !table || (tsidonid && encodingHandler.getTransponderUseTwoCharMapping(tsidonid));
 
 	if (useTwoCharMapping && table == 5) { // i hope this dont break other transponders which realy use ISO8859-5 and two char byte mapping...
