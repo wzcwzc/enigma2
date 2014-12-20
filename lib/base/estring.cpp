@@ -460,80 +460,89 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 	if ( tsidonid )
 		encodingHandler.getTransponderDefaultMapping(tsidonid, table);
 	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
-	switch(data[0])
+	if (table==0x13 )
 	{
-		case 1 ... 11:
-			// For Thai providers, encoding char is present but faulty.
-			if (table != 11)
-				table=data[i]+4;
-			++i;
-//			eDebug("(1..11)text encoded in ISO-8859-%d",table);
-			break;
-		case 0x10:
-		{
-			int n=(data[++i]<<8);
-			n |= (data[++i]);
-//			eDebug("(0x10)text encoded in ISO-8859-%d",n);
-			++i;
-			switch(n)
-			{
-				case 12:
-					eDebug("unsup. ISO8859-12 enc.");
-					break;
-				default:
-					table=n;
-					break;
-			}
-			break;
-		}
-		case 0x11: //  Basic Multilingual Plane of ISO/IEC 10646-1 enc  (UTF-16... Unicode)
-			table = 65;
-			tsidonid = 0;
-			++i;
-			break;
-		case 0x12:
-			++i;
-			eDebug("unsup. KSC 5601 enc.");
-			break;
-		case 0x13:
-			++i;
-//			eDebug("unsup. GB-2312-1980 enc.");
 			ustr=GB18030ToUTF8((const char *)(data + i), len - i);
 			return utfid+ustr;
-			eDebug("unsup. GB-2312-1980 enc.");
-			break;
-		case 0x14:
-			++i;
-//			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
-			table=BIG5_ENCODING;
-			ustr=Big5ToUTF8((const char *)(data + i), len - i);
-			return utfid+ustr;
-			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
-			break;
-		case 0x15: // UTF-8 encoding of ISO/IEC 10646-1
-			return std::string((char*)data+1, len-1);
-		case 0x16:
-			table=UTF16BE_ENCODING;
-			break;
-		case 0x17:
-			table=UTF16LE_ENCODING;
-			break;
-		case 0x1F:
+			eDebug("[GBK]");	
+	}
+	else
+	{
+		switch(data[0])
+		{
+			case 1 ... 11:
+				// For Thai providers, encoding char is present but faulty.
+				if (table != 11)
+					table=data[i]+4;
+				++i;
+	//			eDebug("(1..11)text encoded in ISO-8859-%d",table);
+				break;
+			case 0x10:
 			{
-				// Attempt to decode Freesat Huffman encoded string
-				std::string decoded_string = huffmanDecoder.decode(data, len);
-				if (!decoded_string.empty()) return decoded_string;
+				int n=(data[++i]<<8);
+				n |= (data[++i]);
+	//			eDebug("(0x10)text encoded in ISO-8859-%d",n);
+				++i;
+				switch(n)
+				{
+					case 12:
+						eDebug("unsup. ISO8859-12 enc.");
+						break;
+					default:
+						table=n;
+						break;
+				}
+				break;
 			}
-			i++;
-			eDebug("failed to decode bbc freesat huffman");
-			break;
-		case 0x0:
-		case 0xC ... 0xF:
-//		case 0x16 ... 0x1E:
-		case 0x18 ... 0x1E:
-			eDebug("reserved %d", data[0]);
-			++i;
-			break;
+			case 0x11: //  Basic Multilingual Plane of ISO/IEC 10646-1 enc  (UTF-16... Unicode)
+				table = 65;
+				tsidonid = 0;
+				++i;
+				break;
+			case 0x12:
+				++i;
+				eDebug("unsup. KSC 5601 enc.");
+				break;
+			case 0x13:
+				++i;
+	//			eDebug("unsup. GB-2312-1980 enc.");
+				ustr=GB18030ToUTF8((const char *)(data + i), len - i);
+				return utfid+ustr;
+				eDebug("unsup. GB-2312-1980 enc.");
+				break;
+			case 0x14:
+				++i;
+	//			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
+				table=BIG5_ENCODING;
+				ustr=Big5ToUTF8((const char *)(data + i), len - i);
+				return utfid+ustr;
+				eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
+				break;
+			case 0x15: // UTF-8 encoding of ISO/IEC 10646-1
+				return std::string((char*)data+1, len-1);
+			case 0x16:
+				table=UTF16BE_ENCODING;
+				break;
+			case 0x17:
+				table=UTF16LE_ENCODING;
+				break;
+			case 0x1F:
+				{
+					// Attempt to decode Freesat Huffman encoded string
+					std::string decoded_string = huffmanDecoder.decode(data, len);
+					if (!decoded_string.empty()) return decoded_string;
+				}
+				i++;
+				eDebug("failed to decode bbc freesat huffman");
+				break;
+			case 0x0:
+			case 0xC ... 0xF:
+	//		case 0x16 ... 0x1E:
+			case 0x18 ... 0x1E:
+				eDebug("reserved %d", data[0]);
+				++i;
+				break;
+		}
 	}
 
 	bool useTwoCharMapping = !table || (tsidonid && encodingHandler.getTransponderUseTwoCharMapping(tsidonid));
