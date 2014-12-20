@@ -405,7 +405,7 @@ std::string GB18030ToUTF8(const char *szIn, int len,int *pconvertedLen)
 	char szOut[len * 2];
 	unsigned long code=0;
 	int t=0,i;
-
+	eDebug("[GB18030ToUTF8] ");
 	for(i=0;i<(len-1);){
 		int cl=0,k=0;
 
@@ -428,7 +428,7 @@ std::string Big5ToUTF8(const char *szIn, int len,int *pconvertedLen)
 	char szOut[len * 2];
 	unsigned long code=0;
 	int t=0,i=0;
-
+	eDebug("[Big5ToUTF8] ");
 	for(;i<(len-1);i++){
 		if(((unsigned char)szIn[i]>0xA0) && (unsigned char)szIn[i]<=0xF9 &&(
 			(((unsigned char)szIn[i+1]>=0x40)&&((unsigned char)szIn[i+1]<=0x7F)) || (((unsigned char)szIn[i+1]>0xA0)&&((unsigned char)szIn[i+1]<0xFF))
@@ -459,7 +459,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 	std::string ustr="",utfid="\x15";
 	if ( tsidonid )
 		encodingHandler.getTransponderDefaultMapping(tsidonid, table);
-//	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
+	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
 	switch(data[0])
 	{
 		case 1 ... 11:
@@ -500,7 +500,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 //			eDebug("unsup. GB-2312-1980 enc.");
 			ustr=GB18030ToUTF8((const char *)(data + i), len - i);
 			return utfid+ustr;
-//			eDebug("unsup. GB-2312-1980 enc.");
+			eDebug("unsup. GB-2312-1980 enc.");
 			break;
 		case 0x14:
 			++i;
@@ -508,7 +508,7 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 			table=BIG5_ENCODING;
 			ustr=Big5ToUTF8((const char *)(data + i), len - i);
 			return utfid+ustr;
-//			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
+			eDebug("unsup. Big5 subset of ISO/IEC 10646-1 enc.");
 			break;
 		case 0x15: // UTF-8 encoding of ISO/IEC 10646-1
 			return std::string((char*)data+1, len-1);
