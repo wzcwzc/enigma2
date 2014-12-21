@@ -641,7 +641,7 @@ def InitUsageConfig():
 		("eus baq", _("Basque")),
 		("bul", _("Bulgarian")),
 		("hrv", _("Croatian")),
-		("chn sgp", _("SChinese")),
+		("chi sgp", _("SChinese")),
 		("twn hkn", _("TChinese")),
 		("ces cze", _("Czech")),
 		("dan", _("Danish")),
