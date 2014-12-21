@@ -35,7 +35,7 @@ class Language:
 		self.addLanguage("Ελληνικά", "el", "GR", "ISO-8859-7")
 		self.addLanguage("English (UK)", "en", "GB", "ISO-8859-15")
 		self.addLanguage("English (US)", "en", "US", "ISO-8859-15")
-		self.addLanguage("简体中文", "zh", "CN", "GB18080")
+		self.addLanguage("简体中文", "zh", "CN", "GB18030")
 		self.addLanguage("繁體中文", "hk", "HK", "BIG5")
 		self.addLanguage("Español", "es", "ES", "ISO-8859-15")
 		self.addLanguage("Eesti", "et", "EE", "ISO-8859-15")
