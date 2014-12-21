@@ -460,11 +460,12 @@ std::string convertDVBUTF8(const unsigned char *data, int len, int table, int ts
 	if ( tsidonid )
 		encodingHandler.getTransponderDefaultMapping(tsidonid, table);
 	eDebug("[convertDVBUTF8] table=0x%02X data[0]=0x%02X len=%d",table,data[0],len);
-	if ((table==0x13||data[0]==0x13) && data[0]!=0x15)
+	if ((table==0x13||data[0]==0x13||table==1) && data[0]!=0x15)
 	{
-			ustr=GB18030ToUTF8((const char *)(data + i), len - i);
+			ustr=GB18030ToUTF8((const char *)(data + i), len + 1);
+			eDebug("[GBK]");
 			return utfid+ustr;
-			eDebug("[GBK]");	
+				
 	}
 	else
 	{
